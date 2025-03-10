@@ -21,12 +21,21 @@ import androidx.core.app.ActivityCompat
 import com.example.locapp.ui.theme.LocAppTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import kotlin.math.*
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationTextView: TextView
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+
+    private val locations = listOf(
+        Pair(37.7749, -122.4194), // San Francisco
+        Pair(37.7833, -122.4167), // Nearby in SF
+        Pair(37.7950, -122.4020), // Another nearby point
+        Pair(38.0000, -122.0000)  // Farther away
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,16 +74,55 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location ->
                 if (location != null) {
-                    val latitude = location.latitude
-                    val longitude = location.longitude
-                    locationTextView.text = "Latitude: $latitude\nLongitude: $longitude"
-                } else {
+                    val currentLat = location.latitude
+                    val currentLon = location.longitude
+// Find locations within 1km radius
+                    val nearbyLocations = findNearbyLocations(currentLat, currentLon, locations, 1.0)
+
+                    if (nearbyLocations.isNotEmpty()) {
+                        // Pick a random location from the nearby ones
+                        val randomLocation = nearbyLocations[Random.nextInt(nearbyLocations.size)]
+                        locationTextView.text = "Random nearby location:\n" +
+                                "Latitude: ${randomLocation.first}\n" +
+                                "Longitude: ${randomLocation.second}"
+                    } else {
+                        locationTextView.text = "Current: Lat: $currentLat, Lon: $currentLon\n" +
+                                "No locations found within 1km"
+                    }                } else {
                     Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Failed to get location: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    // Function to calculate distance between two lat/lon points in kilometers (Haversine formula)
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val earthRadius = 6371.0 // Earth's radius in kilometers
+
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2) * sin(dLon / 2)
+
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return earthRadius * c
+    }
+
+    // Function to find locations within a given radius
+    private fun findNearbyLocations(
+        centerLat: Double,
+        centerLon: Double,
+        locations: List<Pair<Double, Double>>,
+        radiusKm: Double
+    ): List<Pair<Double, Double>> {
+        return locations.filter { (lat, lon) ->
+            val distance = calculateDistance(centerLat, centerLon, lat, lon)
+            distance <= radiusKm
+        }
     }
 
     override fun onRequestPermissionsResult(
