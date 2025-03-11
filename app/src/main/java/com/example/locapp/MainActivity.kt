@@ -31,10 +31,11 @@ class MainActivity : AppCompatActivity() {
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     private val locations = listOf(
-        Pair(37.7749, -122.4194), // San Francisco
-        Pair(37.7833, -122.4167), // Nearby in SF
-        Pair(37.7950, -122.4020), // Another nearby point
-        Pair(38.0000, -122.0000)  // Farther away
+        Pair(6.902281, 79.8613898), // San Francisco
+        Pair(6.902283, -122.4167), // Nearby in SF
+        Pair(6.902281, 79.8613899), // Another nearby point
+        Pair(6.902280, 79.8613896) , // Farther away
+        Pair(6.902282, 79.8613895)
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
