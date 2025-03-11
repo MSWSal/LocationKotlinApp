@@ -69,4 +69,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation (libs.json)
+    implementation(libs.kotlinx.coroutines.android)
 }
